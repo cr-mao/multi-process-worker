@@ -239,9 +239,9 @@ $workerNum = 4;
 $totalTaskNum = 101;
 
 MultiProcessByPcntlTest($workerNum, $totalTaskNum);
-echo "pcnt work test finish".PHP_EOL.PHP_EOL;
+echo "pcnt work test finish" . PHP_EOL . PHP_EOL;
 sleep(2);
-MultiProcessBySwooleProcessTest($workerNum,$totalTaskNum);
+MultiProcessBySwooleProcessTest($workerNum, $totalTaskNum);
 
 
 

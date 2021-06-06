@@ -1,6 +1,6 @@
 <?php
 /**
- * Desc:
+ * Desc:  pcntl 模式处理器
  * User: maozhongyu
  * Date: 2021/6/7
  * Time: 上午12:53
@@ -8,9 +8,19 @@
 
 namespace Xpx\MultiProcessWorker;
 
+/**
+ * pcntl 模式处理器
+ * Class PcntlProcessWorker
+ * @package Xpx\MultiProcessWorker
+ */
 class PcntlProcessWorker extends MultiProcessWorker
 {
 
+    /**
+     * 生成工作子进程
+     * @param $processNum   进程数
+     * @param callable $callBack 外部自定义回调函数
+     */
     public function productProcesses($processNum, callable $callBack)
     {
         for ($workPage = 1; $workPage <= $processNum; $workPage++) {
@@ -28,6 +38,10 @@ class PcntlProcessWorker extends MultiProcessWorker
         }
     }
 
+    /**
+     * 等待收回子进程，避免僵尸进程产生 todo 优化
+     * @param $processNum
+     */
     public function waitProcesses($processNum)
     {
         $status = 0;

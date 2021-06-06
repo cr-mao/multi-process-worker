@@ -1,6 +1,6 @@
 <?php
 /**
- * Desc:
+ * Desc: 多进程任务处理器
  * User: maozhongyu
  * Date: 2021/6/7
  * Time: 上午12:43
@@ -116,9 +116,11 @@ class MultiProcessWorker implements MultiProcessWorkerInterface
     public function runBySwooleProcess()
     {
         $swooleProcessWorker = new SwooleProcessWorker();
+        //生产子进程，设置外部回调
         $swooleProcessWorker->productProcesses($this->workerNum, function ($workPage) {
             $this->setWorkCallBack($workPage);
         });
+        //等待进程退出
         $swooleProcessWorker->waitProcesses($this->workerNum);
     }
 
@@ -128,9 +130,11 @@ class MultiProcessWorker implements MultiProcessWorkerInterface
     public function runByPcntlForkProcess()
     {
         $worker = new PcntlProcessWorker();
+        //生产子进程，设置外部回调
         $worker->productProcesses($this->workerNum, function ($workPage) {
             $this->setWorkCallBack($workPage);
         });
+        //等待进程退出
         $worker->waitProcesses($this->workerNum);
     }
 
@@ -166,7 +170,8 @@ class MultiProcessWorker implements MultiProcessWorkerInterface
     {
         list($startTaskId, $endTaskId, $isLastWorkPage) = $this->getWorkContent($workPage);
         $pid = \getmypid();
-        // onWork 回调函数， $startTaskId 开始任务编号，$endTaskId 结束任务编号,$isLastWorkPage是否最后一个工作空间,
+        // onWork 回调函数， $startTaskId: 开始任务编号，$endTaskId:结束任务编号,$isLastWorkPage:是否最后一个工作空间
+        // $workPage: 子进程逻辑号（工作空间），$pid:子进程id
         \call_user_func($this->onWork, $startTaskId, $endTaskId, $isLastWorkPage, $workPage, $pid);
     }
 }
