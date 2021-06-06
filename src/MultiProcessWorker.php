@@ -6,14 +6,14 @@
  * Time: 上午12:43
  */
 
-namespace CrMao\MultiProcessWorker;
+namespace Xpx\MultiProcessWorker;
 
 /**
  * 多任务处理器
  * Class MultiProcessWorker
  * @package Xpx\MultiProcessWorker
  */
-class Work
+class MultiProcessWorker implements MultiProcessWorkerInterface
 {
     public $workerNum = 1; //子进程个数,默认一个
     public $onWork = NULL; //工作空间的回调函数，用于自定义处理任务
