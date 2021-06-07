@@ -4,10 +4,12 @@
 
 ## Requires
 
- php > 7.1
+ - php > 7.1.3
  
- swoole enable ||  pcntl enabled
+ - ext-pcntl enabled
  
+ - ext-swoole optional
+  
 
 ## Installing
 
