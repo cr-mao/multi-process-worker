@@ -1,19 +1,20 @@
 {
-    "name": "cr-mao\/multi-process-worker",
-    "description": "multi process do tasks easily",
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "cr-mao",
-            "email": "crmao1991@gmail.com"
-        }
-    ],
-    "require": {
-	 "php": "^7.1.3"
-	},
-    "autoload": {
-        "psr-4": {
-            "Xpx\\MultiProcessWorker\\": "src"
-        }
+  "name": "cr-mao\/multi-process-worker",
+  "description": "multi process do tasks easily",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "cr-mao",
+      "email": "crmao1991@gmail.com"
     }
+  ],
+  "require": {
+    "php": "^7.1.3",
+    "ext-pcntl": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "Xpx\\MultiProcessWorker\\": "src"
+    }
+  }
 }

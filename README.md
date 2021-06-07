@@ -38,7 +38,7 @@ $worker->start();
 
 
 ## Contributing
-ithub.com:cr-mao/multi_process_worker
+github.com:cr-mao/multi-process-worker
 You can contribute in one of three ways:
 1. File bug reports using the [issue tracker](https://github.com/cr-mao/multi-process-worker/issues).
 2. Answer questions or fix bugs on the [issue tracker](https://github.com/cr-mao/multi-process-worker/issues).
