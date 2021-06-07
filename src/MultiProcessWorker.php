@@ -16,6 +16,7 @@ namespace Xpx\MultiProcessWorker;
 class MultiProcessWorker
 {
     public $workerNum = 1; //子进程个数,默认一个
+    public $maxWorkerNum = 200; //最多开启子进程个数
     public $onWork = NULL; //工作空间的回调函数，用于自定义处理任务
     public $totalTaskNum = 1; //总任务数， 在跑脚本的时候，要考虑新增数据情况
     public $minTaskNum = 1;  //最小任务数
@@ -79,6 +80,13 @@ class MultiProcessWorker
         }
     }
 
+    private function checkWorkNum()
+    {
+        if ($this->workerNum > $this->maxWorkerNum) {
+            exit("最多可开启进程个数" . $this->maxWorkerNum);
+        }
+    }
+
     /**
      * 计算每个进程应该干的任务数量
      */
@@ -94,6 +102,8 @@ class MultiProcessWorker
         $this->checkMode();
         //检测任务数
         $this->checkTaskNum();
+        //检测进程个数
+        $this->checkWorkNum();
         //计算每个进程应该干的任务数量
         $this->perWorkPageShouldDoTaskNum();
         //fork 子进程个数,并设置任务回调函数，处理任务数量计算
