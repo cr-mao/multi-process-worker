@@ -97,45 +97,26 @@ class MultiProcessWorker
         //计算每个进程应该干的任务数量
         $this->perWorkPageShouldDoTaskNum();
         //fork 子进程个数,并设置任务回调函数，处理任务数量计算
-        switch (true) {
-            case $this->mode == self::modePcntl:
-                $this->runByPcntlForkProcess();
-                break;
-            case $this->mode == self::modeSignleSwooleProcess:
-                $this->runBySwooleProcess();
-                break;
-            default:
-                return;
+        //默认Pcntl模式
+        $processWorker = new PcntlProcessWorker();
+        if ($this->mode == self::modeSignleSwooleProcess) {
+            $processWorker = new SwooleProcessWorker();
         }
+        // 启动进程，等待进程退出
+        $this->RunProcess($processWorker);
     }
 
 
     /**
-     * swooleProcess 模式,启动多进程任务
+     *  启动进程，等待进程退出
+     * @param MultiProcessWorkerInterface $processWorker 处理进程类
      */
-    public function runBySwooleProcess()
+    public function RunProcess(MultiProcessWorkerInterface $processWorker)
     {
-        $swooleProcessWorker = new SwooleProcessWorker();
-        //生产子进程，设置外部回调
-        $swooleProcessWorker->productProcesses($this->workerNum, function ($workPage) {
+        $processWorker->productProcesses($this->workerNum, function ($workPage) {
             $this->setWorkCallBack($workPage);
         });
-        //等待进程退出
-        $swooleProcessWorker->waitProcesses($this->workerNum);
-    }
-
-    /**
-     * pcnt模式启动多进程任务
-     */
-    public function runByPcntlForkProcess()
-    {
-        $worker = new PcntlProcessWorker();
-        //生产子进程，设置外部回调
-        $worker->productProcesses($this->workerNum, function ($workPage) {
-            $this->setWorkCallBack($workPage);
-        });
-        //等待进程退出
-        $worker->waitProcesses($this->workerNum);
+        $processWorker->waitProcesses($this->workerNum);
     }
 
 
