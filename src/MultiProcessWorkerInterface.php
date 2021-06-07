@@ -10,5 +10,6 @@ namespace Xpx\MultiProcessWorker;
 
 interface MultiProcessWorkerInterface
 {
-    public function start();
+    public function productProcesses($processNum, callable $callBack);
+    public function waitProcesses($processNum);
 }

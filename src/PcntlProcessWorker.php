@@ -13,7 +13,7 @@ namespace Xpx\MultiProcessWorker;
  * Class PcntlProcessWorker
  * @package Xpx\MultiProcessWorker
  */
-class PcntlProcessWorker extends MultiProcessWorker
+class PcntlProcessWorker  implements MultiProcessWorkerInterface
 {
 
     /**

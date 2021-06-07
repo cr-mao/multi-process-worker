@@ -13,7 +13,7 @@ namespace Xpx\MultiProcessWorker;
  * Class MultiProcessWorker
  * @package Xpx\MultiProcessWorker
  */
-class MultiProcessWorker implements MultiProcessWorkerInterface
+class MultiProcessWorker
 {
     public $workerNum = 1; //子进程个数,默认一个
     public $onWork = NULL; //工作空间的回调函数，用于自定义处理任务

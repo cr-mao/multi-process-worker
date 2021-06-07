@@ -14,7 +14,7 @@ namespace Xpx\MultiProcessWorker;
  * Class SwooleProcessWorker
  * @package Xpx\MultiProcessWorker
  */
-class SwooleProcessWorker extends MultiProcessWorker
+class SwooleProcessWorker implements MultiProcessWorkerInterface
 {
 
     /**
