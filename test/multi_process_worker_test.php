@@ -12,7 +12,7 @@ use Xpx\MultiProcessWorker\MultiProcessWorker;
 
 $workNum = 4;
 $totalTaskNum = 101;
-$worker = new MultiProcessWorker(4, 101, MultiProcessWorker::modePcntl);
+$worker = new MultiProcessWorker(100, 10001, MultiProcessWorker::modePcntl);
 $worker->onWork = function ($startTaskId, $endTaskId, $isLastWorkPage, $workPage, $pid) {
     //每个工作空间，如任务数较多，建议分页处理
     echo "工作空间编号{$workPage},pid:{$pid}, 负责任务编号{$startTaskId}-{$endTaskId}";
@@ -21,6 +21,7 @@ $worker->onWork = function ($startTaskId, $endTaskId, $isLastWorkPage, $workPage
     }
     echo "begin work";
     echo PHP_EOL;
+    sleep(10);
 };
 echo "pcntl模式------------start" . PHP_EOL;
 $worker->start();
@@ -37,6 +38,7 @@ $worker->onWork = function ($startTaskId, $endTaskId, $isLastWorkPage, $workPage
         echo " 最后一个工作空间，需要跑脚本新增情况考虑，如select * from xxx where id > {$startTaskId}";
     }
     echo " begin work";
+    sleep(10);
     echo PHP_EOL;
 };
 echo "swooleProcess模式---------start" . PHP_EOL;

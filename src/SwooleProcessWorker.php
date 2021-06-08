@@ -11,11 +11,14 @@ namespace Xpx\MultiProcessWorker;
 
 /**
  *  swoole process 模式处理器
+ *  swoole 信号是异步信号，暂不考虑加上信号功能
  * Class SwooleProcessWorker
  * @package Xpx\MultiProcessWorker
  */
 class SwooleProcessWorker implements MultiProcessWorkerInterface
 {
+//    public $workPids = []; //子进程，工作进程
+//    public $parentPid; //主进程
 
     /**
      * 生成工作子进程
@@ -24,8 +27,11 @@ class SwooleProcessWorker implements MultiProcessWorkerInterface
      */
     public function productProcesses($processNum, callable $callBack)
     {
+        // 保存主进程
+//        $this->parentPid = getmypid();
         for ($workPage = 1; $workPage <= $processNum; $workPage++) {
             $process = new \Swoole\Process(function () use ($workPage, $callBack) {
+//                $this->workPids[] = getmypid();
                 $callBack($workPage);
             });
             $process->start();
@@ -42,4 +48,5 @@ class SwooleProcessWorker implements MultiProcessWorkerInterface
             \Swoole\Process::wait(true);
         }
     }
+
 }
