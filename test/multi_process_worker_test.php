@@ -8,40 +8,28 @@
 
 require_once __DIR__ . "/../vendor/autoload.php";
 
-use Xpx\MultiProcessWorker\MultiProcessWorker;
+use Crmao\MultiProcessWorker\MultiProcessWorker;
 
 $workNum = 4;
-$totalTaskNum = 101;
-$worker = new MultiProcessWorker(100, 10001, MultiProcessWorker::modePcntl);
-$worker->onWork = function ($startTaskId, $endTaskId, $isLastWorkPage, $workPage, $pid) {
-    //每个工作空间，如任务数较多，建议分页处理
-    echo "工作空间编号{$workPage},pid:{$pid}, 负责任务编号{$startTaskId}-{$endTaskId}";
-    if ($isLastWorkPage) {
-        echo " 最后一个工作空间，需要跑脚本新增情况考虑，如select * from xxx where id > {$startTaskId}";
-    }
-    echo "begin work";
+//$worker = new MultiProcessWorker($workNum, MultiProcessWorker::modePcntl);
+$worker = new MultiProcessWorker($workNum, MultiProcessWorker::modeSwooleProcess);
+$worker->onWork = function ($workPage, $pid) use ($workNum) {
     echo PHP_EOL;
-    sleep(10);
+    echo "工作空间编号:{$workPage},进程id:{$pid}" . PHP_EOL;
+
+    //提供便捷函数，快速获得任务内容，id模式
+    list($beginId, $endId, $isLastWorkPage) = MultiProcessWorker::getWorkContentByIdMode($workPage, $workNum, 1, 100001);
+    //  select * from xxx where id >={$beginId} AND id <= {$endId},每个进程内可以自行在分页处理,  最后一个工作空间,你也许要考虑数据新增情况
+    echo "begin mysql id is {$beginId}, end mysql id is {$endId}, 是否是最后一个工作空间:{$isLastWorkPage}";
+    echo PHP_EOL;
+
+    //提供便捷函数，快速获得内容  offset,limit 模式
+    list($offset, $limit, $isLastWorkPage) = MultiProcessWorker::getWorkContentByOffsetMode($workPage, $workNum, 10001);
+    echo "offset is {$offset}, limit is {$limit}, 是否是最后一个工作空间:{$isLastWorkPage} ";
+    // select * from xxx where xxxxx  offset {$offset},$limit
+    echo PHP_EOL;
+    sleep(3);
 };
-echo "pcntl模式------------start" . PHP_EOL;
 $worker->start();
 
-echo "pcntl模式------------end" . PHP_EOL;
-
-sleep(2);
-
-$worker = new MultiProcessWorker(4, 101, MultiProcessWorker::modeSignleSwooleProcess);
-$worker->onWork = function ($startTaskId, $endTaskId, $isLastWorkPage, $workPage, $pid) {
-    //每个工作空间，如任务数较多，建议分页处理
-    echo "工作空间编号{$workPage},pid:{$pid}, 负责任务编号{$startTaskId}-{$endTaskId}";
-    if ($isLastWorkPage) {
-        echo " 最后一个工作空间，需要跑脚本新增情况考虑，如select * from xxx where id > {$startTaskId}";
-    }
-    echo " begin work";
-    sleep(10);
-    echo PHP_EOL;
-};
-echo "swooleProcess模式---------start" . PHP_EOL;
-$worker->start();
-echo "swooleProcess模式---------end" . PHP_EOL;
 
