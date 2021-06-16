@@ -6,20 +6,19 @@
  * Time: 上午12:53
  */
 
-namespace Xpx\MultiProcessWorker;
+namespace Crmao\MultiProcessWorker;
 
 
 /**
  *  swoole process 模式处理器
  *  swoole 信号是异步信号，暂不考虑加上信号功能
  * Class SwooleProcessWorker
- * @package Xpx\MultiProcessWorker
+ * @package Crmao\MultiProcessWorker
  */
 class SwooleProcessWorker implements MultiProcessWorkerInterface
 {
 //    public $workPids = []; //子进程，工作进程
 //    public $parentPid; //主进程
-
     /**
      * 生成工作子进程
      * @param $processNum   进程数

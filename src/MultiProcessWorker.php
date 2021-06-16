@@ -6,60 +6,52 @@
  * Time: 上午12:43
  */
 
-namespace Xpx\MultiProcessWorker;
+namespace Crmao\MultiProcessWorker;
 
 /**
  * 多任务处理器
  * Class MultiProcessWorker
- * @package Xpx\MultiProcessWorker
+ * @package Crmao\MultiProcessWorker
  */
 class MultiProcessWorker
 {
     public $workerNum = 1; //子进程个数,默认一个
-    public $maxWorkerNum = 200; //最多开启子进程个数
-    public $onWork = NULL; //工作空间的回调函数，用于自定义处理任务
-    public $totalTaskNum = 1; //总任务数， 在跑脚本的时候，要考虑新增数据情况
-    public $minTaskNum = 1;  //最小任务数
-    public $perWorkPageTaskNum;// 每个进程要处理的任务个数
+    public $maxWorkerNum = 128; //最多开启子进程个数
+    public $onWork = null; //工作进程的回调函数，用于自定义处理任务
     public $mode = 1; //工作模式  （1=>pcntl，2=>swoole Process (单进程) ），默认使用 pcntl
     const  modePcntl = 1;  // pcntl模式
-    const  modeSignleSwooleProcess = 2;// swoole Process模式,  https://wiki.swoole.com/#/process/process?id=process
+    const  modeSwooleProcess = 2;// swoole Process模式,  https://wiki.swoole.com/#/process/process?id=process
+
 
     /**
-     * WorkerProcess constructor.
-     * @param int $workerNum 工作进程个数
-     * @param int $totalTaskNum
-     *              总任务数,可能是来源mysql 的，也可能是写死的数组等，
-     *              帮你计算好了每个进程要干的任务编号范围,任务数
-     *              其实你可以不用它，只关心有几个逻辑进程空间，自行处理每个进程要干的活
-     * @param int $minTaskNum 最小任务个数 ，任务数很小，其实就没必要用多进程处理了
-     * @param int $mode 工作模式  （1=>pcntl，2=>swoole Process (单进程) ），默认使用 pcntl
+     * MultiProcessWorker constructor.
+     * @param int $workerNum 工作进程数
+     * @param int $mode 工作模式 1=>pcntl    2=>swoole process
      */
-    public function __construct(int $workerNum = 1, int $totalTaskNum = 1, int $mode = 1, int $minTaskNum = 1)
+    public function __construct(int $workerNum, int $mode = self::modePcntl)
     {
         $this->workerNum = $workerNum;
-        $this->totalTaskNum = $totalTaskNum;
-        $this->minTaskNum = $minTaskNum;
         $this->mode = $mode;
     }
+
 
     /**
      * 检测工作模式 ，扩展是否符合要求
      */
     private function checkMode()
     {
-        if (!in_array($this->mode, [self::modePcntl, self::modeSignleSwooleProcess])) {
-            exit("模式不正确");
+        if (!in_array($this->mode, [self::modePcntl, self::modeSwooleProcess])) {
+            throw new MultiProcessWorkerException("unvailable mode");
         }
         switch (true) {
             case $this->mode == self::modePcntl:
                 if (!\extension_loaded("pcntl")) {
-                    exit("pcntl 扩展没有安装");
+                    throw new MultiProcessWorkerException("pcntl-ext is not installed");
                 }
                 break;
-            case $this->mode == self::modeSignleSwooleProcess:
+            case $this->mode == self::modeSwooleProcess:
                 if (!\extension_loaded("swoole")) {
-                    exit("swoole 扩展没有安装");
+                    throw new MultiProcessWorkerException("swoole-ext is not installed");
                 }
                 break;
             default :
@@ -67,53 +59,40 @@ class MultiProcessWorker
         }
     }
 
-    /**
-     * 检测任务数，进程数设置是否合法
-     */
-    private function checkTaskNum()
-    {
-        if ($this->totalTaskNum < $this->workerNum) {
-            exit("任务数不能小于进程个数");
-        }
-        if ($this->totalTaskNum < $this->minTaskNum) {
-            exit("任务数小于最小任务个数设置");
-        }
-    }
 
+    /**
+     * 检测开启子进程数
+     * @throws MultiProcessWorkerException
+     */
     private function checkWorkNum()
     {
+        if ($this->workerNum < 1) {
+            throw new MultiProcessWorkerException("最少开启1个子进程");
+        }
         if ($this->workerNum > $this->maxWorkerNum) {
-            exit("最多可开启进程个数" . $this->maxWorkerNum);
+            throw new MultiProcessWorkerException("最多可开启进程个数" . $this->maxWorkerNum);
         }
     }
 
-    /**
-     * 计算每个进程应该干的任务数量
-     */
-    private function perWorkPageShouldDoTaskNum()
-    {
-        $this->perWorkPageTaskNum = (int)($this->totalTaskNum / $this->workerNum);
-    }
 
     //启动
     public function start()
     {
-        //检测模式，php扩展是否符合要求
-        $this->checkMode();
-        //检测任务数
-        $this->checkTaskNum();
-        //检测进程个数
-        $this->checkWorkNum();
-        //计算每个进程应该干的任务数量
-        $this->perWorkPageShouldDoTaskNum();
-        //fork 子进程个数,并设置任务回调函数，处理任务数量计算
-        //默认Pcntl模式
-        $processWorker = new PcntlProcessWorker();
-        if ($this->mode == self::modeSignleSwooleProcess) {
-            $processWorker = new SwooleProcessWorker();
+        try {
+            //检测进程个数
+            $this->checkWorkNum();
+            //检测模式，php扩展是否符合要求
+            $this->checkMode();
+            //默认Pcntl模式
+            $processWorker = new PcntlProcessWorker();
+            if ($this->mode == self::modeSwooleProcess) {
+                $processWorker = new SwooleProcessWorker();
+            }
+            // 启动进程，等待进程退出
+            $this->RunProcess($processWorker);
+        } catch (MultiProcessWorkerException $e) {
+            throw new \Exception($e->getMessage());
         }
-        // 启动进程，等待进程退出
-        $this->RunProcess($processWorker);
     }
 
 
@@ -131,39 +110,58 @@ class MultiProcessWorker
 
 
     /**
-     * 根据工作空间编号获得相应任务
-     * @param $workPage
-     * @return array [$startTaskId 开始任务编号,$endTaskId 结束任务编号,$isLastWorkPage 是否是最后一个工作空间]
-     */
-    private function getWorkContent($workPage)
-    {
-        $perWorkPageTaskNum = $this->perWorkPageTaskNum;
-        // 本工作空间，要处理的任务开始编号
-        $startTaskId = ($workPage - 1) * $perWorkPageTaskNum + 1;
-        // 本工作空间，要处理的任务结束编号
-        $endTaskId = $workPage * $perWorkPageTaskNum;
-        //最后一个工作空间，要考虑 数据新增情况，如mysql 任务，在脚本执行期间，新增数据
-        $isLastWorkPage = false;
-        if ($workPage == $this->workerNum) {
-            $isLastWorkPage = true;
-            $endTaskId = $this->totalTaskNum;
-        }
-        return [
-            $startTaskId, $endTaskId, $isLastWorkPage
-        ];
-    }
-
-    /**
      *  设置回调函数，用于外部自定义处理任务
      * @param $workPage 工作进程逻辑空间编号
      */
     public function setWorkCallBack($workPage)
     {
-        list($startTaskId, $endTaskId, $isLastWorkPage) = $this->getWorkContent($workPage);
         $pid = \getmypid();
-        // onWork 回调函数， $startTaskId: 开始任务编号，$endTaskId:结束任务编号,$isLastWorkPage:是否最后一个工作空间
-        // $workPage: 子进程逻辑号（工作空间），$pid:子进程id
-        \call_user_func($this->onWork, $startTaskId, $endTaskId, $isLastWorkPage, $workPage, $pid);
+        \call_user_func($this->onWork, $workPage, $pid);
+    }
+
+
+    /**
+     * 快速获得 每个进程要工作的内容信息（offset,limit 模式 ） 适合小表，数组
+     * @param $workPage      工作进程，逻辑空间编号
+     * @param $workNum       工作进程数
+     * @param $totalTaskNum  总任务数
+     * @return array
+     */
+    public static function getWorkContentByOffsetMode(int $workPage, int $workNum, int $totalTaskNum)
+    {
+        $workPageTaskNum = ceil($totalTaskNum / $workNum);
+        $offset = ($workPage - 1) * $workPageTaskNum;
+        $isLastWorkPage = false;
+        if ($workPage == $workNum) {
+            $isLastWorkPage = true;
+            $workPageTaskNum = $totalTaskNum - ($workPage - 1) * $workPageTaskNum;
+        }
+        return [$offset, $workPageTaskNum, $isLastWorkPage];
+    }
+
+
+    /**
+     *快速获得 每个进程要工作的内容信息（id模式 ） 适合大表，数据够均匀
+     * @param $workPage  工作进程，逻辑空间编号
+     * @param $startId   开始任务id
+     * @param $endId     结束任务id
+     */
+    public static function getWorkContentByIdMode(int $workPage, int $workNum, int $startId, int $endId)
+    {
+        $total = $endId - $startId;
+        if ($total <= 0) {
+            return;
+        }
+        $workPageTaskNum = ceil($total / $workNum);
+        $taskStartId = ($workPage - 1) * $workPageTaskNum + $startId + $workPage - 1;
+        $taskEndId = $taskStartId + $workPageTaskNum;
+        $isLastWorkPage = false;
+        //最后一个工作进程 ，可能要考虑数据跑脚本时候新增问题
+        if ($workPage == $workNum) {
+            $isLastWorkPage = true;
+            $taskEndId = $endId;
+        }
+        return [$taskStartId, $taskEndId, $isLastWorkPage];
     }
 }
 

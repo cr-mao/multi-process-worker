@@ -6,12 +6,12 @@
  * Time: 上午12:53
  */
 
-namespace Xpx\MultiProcessWorker;
+namespace Crmao\MultiProcessWorker;
 
 /**
  * pcntl 模式处理器
  * Class PcntlProcessWorker
- * @package Xpx\MultiProcessWorker
+ * @package Crmao\MultiProcessWorker
  */
 class PcntlProcessWorker implements MultiProcessWorkerInterface
 {
@@ -89,7 +89,7 @@ class PcntlProcessWorker implements MultiProcessWorkerInterface
             }
             // 当发现信号队列,一旦发现有信号就会触发进程绑定事件回调
             \pcntl_signal_dispatch();
-            $pid = \pcntl_wait($status); //当进程退出，或 中断进程信号到达之后就会被中断 ,目前只注册了SIGINT信号
+            $pid = \pcntl_wait($status); //当进程退出，或 中断进程信号到达之后就会被中断
 //            $this->debug("pcntl_wait result is {$pid}");
             //主进程收到信号，关闭所有子进程
             if ($pid == $this->parentPid) {
@@ -101,7 +101,7 @@ class PcntlProcessWorker implements MultiProcessWorkerInterface
                 \posix_kill($pid, SIGKILL);
                 unset($this->workPids[$index]);
             }
-            //保险，这个应该没用
+            //这个应该没用,如果前面重启进程，那么这个就有必要，保险。
             \pcntl_signal_dispatch();
         }
     }

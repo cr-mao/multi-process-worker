@@ -6,7 +6,7 @@
  * Time: 上午12:46
  */
 
-namespace Xpx\MultiProcessWorker;
+namespace Crmao\MultiProcessWorker;
 
 interface MultiProcessWorkerInterface
 {
