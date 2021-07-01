@@ -31,7 +31,7 @@ use Crmao\MultiProcessWorker\MultiProcessWorker;
 
 $workNum = 4;
 $worker = new MultiProcessWorker($workNum, MultiProcessWorker::modePcntl);
-//$worker = new MultiProcessWorker($workNum, MultiProcessWorker::modeSignleSwooleProcess);
+//$worker = new MultiProcessWorker($workNum, MultiProcessWorker::modeSwooleProcess);
 $worker->onWork = function ($workPage, $pid) use ($workNum) {
     echo PHP_EOL;
     echo "工作空间编号:{$workPage},进程id:{$pid}" . PHP_EOL;
